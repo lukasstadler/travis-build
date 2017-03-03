@@ -2,10 +2,15 @@ module Travis
   module Build
     class Script
       class Elm < NodeJs
+        # Default NodeJS version to install
+        DEFAULT_VERSION = '6.10.0'
+
         DEFAULTS = {
           elm_version: 'latest',
           elm_test_version: 'latest'
         }
+
+        ELM_TEST_REQUIRED_NODE_VERSION = '4.0.0'
 
         def export
           super
@@ -70,7 +75,7 @@ module Travis
 
           def install_elm
             npm_install '-g elm-use@">=1.1.0 <2.0.0"'
-            sh.cmd 'elm-use #{elm_version}', retry: true
+            sh.cmd "elm-use #{elm_version}", retry: true
 
             convert_binary_to_sysconfcpus 'elm'
             convert_binary_to_sysconfcpus 'elm-make'
@@ -79,9 +84,17 @@ module Travis
           end
 
           def install_elm_test
-            npm_install '-g elm-test@#{elm_test_version}'
+              sh.if "$(vers2int $(echo `node --version` | tr -d 'v')) -lt $(vers2int #{ELM_TEST_REQUIRED_NODE_VERSION})" do
+                sh.echo "Node.js version $(node --version) does not meet requirement for elm-test." \
+                  " Please use Node.js #{ELM_TEST_REQUIRED_NODE_VERSION} or later.", ansi: :red
+              end
+              sh.else do
+                sh.if "-z \"$(command -v elm-test)\"" do
+                  npm_install "-g elm-test@#{elm_test_version}"
 
-            convert_binary_to_sysconfcpus 'elm-test'
+                  convert_binary_to_sysconfcpus 'elm-test'
+                end
+              end
           end
 
           def convert_binary_to_sysconfcpus(binary_name)
@@ -96,13 +109,15 @@ module Travis
           end
 
           def install_sysconfcpus
-            # this is a prerequisite for the convert_binary_to_sysconfcpus method
-            # which provides an epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
-            sh.cmd 'git clone https://github.com/obmarg/libsysconfcpus.git', retry: true
-            sh.cd 'libsysconfcpus'
-            sh.cmd './configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus'
-            sh.cmd 'make && make install'
-            sh.cd '..'
+            sh.fold 'sysconfcpus' do
+              # this is a prerequisite for the convert_binary_to_sysconfcpus method
+              # which provides an epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
+              sh.cmd 'git clone https://github.com/obmarg/libsysconfcpus.git', retry: true
+              sh.cd 'libsysconfcpus'
+              sh.cmd './configure --prefix=$TRAVIS_BUILD_DIR/sysconfcpus'
+              sh.cmd 'make && make install'
+              sh.cd '..'
+            end
           end
       end
     end

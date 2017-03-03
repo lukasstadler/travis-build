@@ -119,10 +119,6 @@ module Travis
               sh.cd '..'
             end
           end
-
-          def use_nvm_version
-            install config[:node_js].to_s
-          end
       end
     end
   end

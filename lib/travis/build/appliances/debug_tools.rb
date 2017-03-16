@@ -34,6 +34,12 @@ module Travis
             sh.file "travis_debug.sh", template('travis_debug.sh')
             sh.chmod '+x', "travis_debug.sh", echo: false
 
+            sh.raw <<-DEBUG_INSTRUCTIONS
+cat >> $HOME_DIR/.bashrc <<-EOF
+echo "HELLO! YOU ARE IN DEBUG SESSION!"
+EOF
+            DEBUG_INSTRUCTIONS
+
             sh.mkdir "#{HOME_DIR}/.ssh", echo: false, recursive: true
             sh.cmd "cat /dev/zero | ssh-keygen -q -f #{HOME_DIR}/.ssh/tmate -N '' &> /dev/null", echo: false
             sh.file "#{HOME_DIR}/.tmate.conf", template("tmate.conf", identity: "#{HOME_DIR}/.ssh/tmate")

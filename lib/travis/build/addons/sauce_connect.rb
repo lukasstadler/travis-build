@@ -31,19 +31,19 @@ module Travis
             sh.export 'SAUCE_TUNNEL_DOMAINS', "'-t #{tunnel_domains}'", echo: false
           end
 
-          sh.fold 'sauce_connect.start' do
-            sh.echo 'Starting Sauce Connect', echo: false, ansi: :yellow
-            sh.cmd 'travis_start_sauce_connect', assert: false, echo: true, timing: true, retry: true
-            sh.export 'TRAVIS_SAUCE_CONNECT', 'true', echo: false
-          end
+          # sh.fold 'sauce_connect.start' do
+          #   sh.echo 'Starting Sauce Connect', echo: false, ansi: :yellow
+          #   sh.cmd 'travis_start_sauce_connect', assert: false, echo: true, timing: true, retry: true
+          #   sh.export 'TRAVIS_SAUCE_CONNECT', 'true', echo: false
+          # end
         end
 
-        def after_after_script
-          sh.fold 'sauce_connect.stop' do
-            sh.echo 'Stopping Sauce Connect', echo: false, ansi: :yellow
-            sh.cmd 'travis_stop_sauce_connect', assert: false, echo: true, timing: true
-          end
-        end
+        # def after_after_script
+        #   sh.fold 'sauce_connect.stop' do
+        #     sh.echo 'Stopping Sauce Connect', echo: false, ansi: :yellow
+        #     sh.cmd 'travis_stop_sauce_connect', assert: false, echo: true, timing: true
+        #   end
+        # end
 
         private
 
